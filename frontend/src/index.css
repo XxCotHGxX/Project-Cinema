@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-cinema-black text-white font-sans;
+}
+
+.netflix-gradient {
+  background: linear-gradient(180deg, transparent 0%, rgba(20, 20, 20, 0.8) 70%, #141414 100%);
+}

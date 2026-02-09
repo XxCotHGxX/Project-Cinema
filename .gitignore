@@ -1,0 +1,15 @@
+node_modules/
+venv/
+.env
+__pycache__/
+*.pyc
+dist/
+build/
+.DS_Store
+.vscode/
+frontend/node_modules/
+frontend/dist/
+*.zip
+bin/
+*.exe
+*.db
