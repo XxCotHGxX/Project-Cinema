@@ -30,9 +30,11 @@ if os.path.exists(FRONTEND_DIST):
     app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIST, "assets")), name="assets")
     app.mount("/ui", StaticFiles(directory=FRONTEND_DIST, html=True), name="ui")
 
+from starlette.responses import RedirectResponse
+
 @app.get("/")
 async def root():
-    return {"message": "Project Cinema API Online", "status": "active", "ui": "/ui"}
+    return RedirectResponse(url="/ui/")
 
 @app.post("/register")
 def register(username: str, email: str, password: str, db: Session = Depends(database.get_db)):

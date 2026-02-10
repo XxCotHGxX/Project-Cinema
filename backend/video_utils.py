@@ -1,6 +1,6 @@
 import os
 from fastapi import HTTPException
-from starlette.responses import StreamingResponse
+from starlette.responses import StreamingResponse, RedirectResponse
 
 def send_video_range_requests(file_path: str, range_header: str):
     file_size = os.path.getsize(file_path)
