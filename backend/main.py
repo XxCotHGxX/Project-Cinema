@@ -27,6 +27,7 @@ app.mount("/static", StaticFiles(directory=DATA_DIR), name="static")
 # Mount frontend build
 FRONTEND_DIST = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
 if os.path.exists(FRONTEND_DIST):
+    app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIST, "assets")), name="assets")
     app.mount("/ui", StaticFiles(directory=FRONTEND_DIST, html=True), name="ui")
 
 @app.get("/")
@@ -67,10 +68,24 @@ def get_movies():
 
 @app.get("/stream/{movie_id}")
 async def stream_video(movie_id: int, range: str = Header(None)):
-    # Placeholder for actual file lookup
-    video_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "videos", "sample.mp4")
-    if not os.path.exists(video_path):
-        raise HTTPException(status_code=404, detail="Video file not found")
+    library_path = os.path.join(DATA_DIR, "library.json")
+    if not os.path.exists(library_path):
+        raise HTTPException(status_code=404, detail="Library not found")
+    
+    with open(library_path, "r") as f:
+        movies = json.load(f)
+    
+    if movie_id < 0 or movie_id >= len(movies):
+        raise HTTPException(status_code=404, detail="Movie index out of range")
+    
+    movie = movies[movie_id]
+    video_path = movie.get("path")
+    
+    if not video_path or not os.path.exists(video_path):
+        # Fallback to sample if the specific file is gone
+        video_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "videos", "sample.mp4")
+        if not os.path.exists(video_path):
+            raise HTTPException(status_code=404, detail="Video file not found")
     
     return video_utils.send_video_range_requests(video_path, range)
 
