@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     TMDB_API_KEY: str = ""
     TMDB_READ_ACCESS_TOKEN: str = ""
-    STORAGE_HOST: str = "192.168.1.60"
+    STORAGE_HOST: str = "192.168.1.xxx"
     STORAGE_SHARE: str = "Videos"
     STORAGE_USER: str = "michael"
     STORAGE_PASS: str = ""

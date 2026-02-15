@@ -4,7 +4,6 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from . import models, auth, database, video_utils
 from .config import settings
-from datetime import datetime
 import os
 import json
 
@@ -28,14 +27,11 @@ app.mount("/static", StaticFiles(directory=DATA_DIR), name="static")
 # Mount frontend build
 FRONTEND_DIST = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
 if os.path.exists(FRONTEND_DIST):
-    app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIST, "assets")), name="assets")
     app.mount("/ui", StaticFiles(directory=FRONTEND_DIST, html=True), name="ui")
-
-from starlette.responses import RedirectResponse
 
 @app.get("/")
 async def root():
-    return RedirectResponse(url="/ui/")
+    return {"message": "Project Cinema API Online", "status": "active", "ui": "/ui"}
 
 @app.post("/register")
 def register(username: str, email: str, password: str, db: Session = Depends(database.get_db)):
@@ -62,58 +58,19 @@ def login(email: str, password: str, db: Session = Depends(database.get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.get("/movies")
-def get_movies(db: Session = Depends(database.get_db)):
-    # First, ensure DB is synced with library.json
+def get_movies():
     library_path = os.path.join(DATA_DIR, "library.json")
     if os.path.exists(library_path):
         with open(library_path, "r") as f:
-            library_data = json.load(f)
-            for item in library_data:
-                video = db.query(models.Video).filter(models.Video.file_path == item["path"]).first()
-                if not video:
-                    video = models.Video(
-                        title=item["title"],
-                        filename=item["filename"],
-                        file_path=item["path"],
-                        description=item["description"],
-                        release_date=str(item["year"]),
-                        poster_url=item["poster_url"],
-                        backdrop_url=item["backdrop_url"],
-                        genre=item.get("genre", "Uncategorized")
-                    )
-                    db.add(video)
-                elif not video.genre:
-                    video.genre = item.get("genre", "Uncategorized")
-            db.commit()
-    
-    return db.query(models.Video).all()
+            return json.load(f)
+    return []
 
-@app.post("/progress/{video_id}")
-def update_progress(video_id: int, seconds: int, duration: int = 0, db: Session = Depends(database.get_db)):
-    video = db.query(models.Video).filter(models.Video.id == video_id).first()
-    if not video:
-        raise HTTPException(status_code=404, detail="Video not found")
-    
-    video.progress = seconds
-    if duration > 0:
-        video.duration = duration
-    video.last_watched = datetime.utcnow()
-    db.commit()
-    return {"message": "Progress updated", "progress": seconds, "duration": video.duration}
-
-@app.get("/stream/{video_id}")
-async def stream_video(video_id: int, range: str = Header(None), db: Session = Depends(database.get_db)):
-    video = db.query(models.Video).filter(models.Video.id == video_id).first()
-    if not video:
-        raise HTTPException(status_code=404, detail="Video not found")
-    
-    video_path = video.file_path
-    
-    if not video_path or not os.path.exists(video_path):
-        # Fallback to sample if the specific file is gone
-        video_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "videos", "sample.mp4")
-        if not os.path.exists(video_path):
-            raise HTTPException(status_code=404, detail="Video file not found")
+@app.get("/stream/{movie_id}")
+async def stream_video(movie_id: int, range: str = Header(None)):
+    # Placeholder for actual file lookup
+    video_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "videos", "sample.mp4")
+    if not os.path.exists(video_path):
+        raise HTTPException(status_code=404, detail="Video file not found")
     
     return video_utils.send_video_range_requests(video_path, range)
 

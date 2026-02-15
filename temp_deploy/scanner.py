@@ -28,20 +28,10 @@ def scan_videos(directory):
         print(f"Path {directory} not found.")
         return []
 
-    print(f"Scanning directory: {path.absolute()}")
     for file in path.rglob('*'):
-        if file.is_dir():
-            print(f"Checking subfolder: {file.relative_to(path)}")
-            continue
-            
         if file.suffix.lower() in VIDEO_EXTENSIONS:
             title, year = parse_filename(file.name)
-            
-            # Detect genre/category from subfolder name
-            relative_path = file.relative_to(path)
-            genre = relative_path.parts[0] if len(relative_path.parts) > 1 else "Uncategorized"
-            
-            print(f"Found: {relative_path} [Genre: {genre}] -> Enriching: {title} ({year if year else 'N/A'})...")
+            print(f"Enriching: {title} ({year if year else 'N/A'})...")
             
             # Pull from TMDB
             meta = get_movie_metadata(title, year)
@@ -51,7 +41,6 @@ def scan_videos(directory):
                 "year": year,
                 "filename": file.name,
                 "path": str(file.absolute()),
-                "genre": genre,
                 "size_mb": round(file.stat().st_size / (1024 * 1024), 2),
                 "extension": file.suffix,
                 "description": meta["description"] if meta else "No synopsis available.",
@@ -63,12 +52,7 @@ def scan_videos(directory):
     return video_list
 
 if __name__ == "__main__":
-    import sys
-    if len(sys.argv) > 1:
-        target_dir = sys.argv[1]
-    else:
-        target_dir = os.path.join(os.path.dirname(__file__), "videos")
-        
+    target_dir = os.path.join(os.path.dirname(__file__), "videos")
     results = scan_videos(target_dir)
     data_dir = os.path.join(os.path.dirname(__file__), "data")
     os.makedirs(data_dir, exist_ok=True)

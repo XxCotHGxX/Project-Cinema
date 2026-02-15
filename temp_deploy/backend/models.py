@@ -28,4 +28,3 @@ class Video(Base):
     rating = Column(Integer, nullable=True)
     last_watched = Column(DateTime, nullable=True)
     progress = Column(Integer, default=0) # Progress in seconds
-    duration = Column(Integer, default=0) # Total duration in seconds
