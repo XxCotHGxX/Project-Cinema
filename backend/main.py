@@ -79,14 +79,25 @@ def get_movies(db: Session = Depends(database.get_db)):
                         release_date=str(item["year"]),
                         poster_url=item["poster_url"],
                         backdrop_url=item["backdrop_url"],
-                        genre=item.get("genre", "Uncategorized")
+                        genre=item.get("genre", "Uncategorized"),
+                        media_type=item.get("media_type", "Movie"),
+                        season=item.get("season"),
+                        episode=item.get("episode")
                     )
                     db.add(video)
-                elif not video.genre:
-                    video.genre = item.get("genre", "Uncategorized")
+                else:
+                    # Update existing fields if they were missing
+                    if not video.media_type:
+                        video.media_type = item.get("media_type", "Movie")
+                    if not video.season:
+                        video.season = item.get("season")
+                    if not video.episode:
+                        video.episode = item.get("episode")
+                    if not video.genre:
+                        video.genre = item.get("genre", "Uncategorized")
             db.commit()
     
-    return db.query(models.Video).all()
+    return db.query(models.Video).order_by(models.Video.media_type, models.Video.title, models.Video.season, models.Video.episode).all()
 
 @app.post("/progress/{video_id}")
 def update_progress(video_id: int, seconds: int, duration: int = 0, db: Session = Depends(database.get_db)):

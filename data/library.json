@@ -4,10 +4,15 @@
         "year": null,
         "filename": "sample.mp4",
         "path": "D:\\ProgD\\ProjectCinema\\videos\\sample.mp4",
+        "genre": "Uncategorized",
+        "media_type": "Movie",
+        "season": null,
+        "episode": null,
         "size_mb": 0.0,
         "extension": ".mp4",
         "description": "",
         "poster_url": "https://image.tmdb.org/t/p/w500/xBW0tpZBH2YGkL5Hey83FthSXkE.jpg",
-        "backdrop_url": "https://image.tmdb.org/t/p/originalNone"
+        "backdrop_url": "https://image.tmdb.org/t/p/originalNone",
+        "rating": 7.0
     }
 ]

@@ -26,6 +26,9 @@ class Video(Base):
     backdrop_url = Column(String, nullable=True)
     genre = Column(String, nullable=True)
     rating = Column(Integer, nullable=True)
+    media_type = Column(String, default="Movie") # Movie, TV
+    season = Column(Integer, nullable=True)
+    episode = Column(Integer, nullable=True)
     last_watched = Column(DateTime, nullable=True)
     progress = Column(Integer, default=0) # Progress in seconds
     duration = Column(Integer, default=0) # Total duration in seconds

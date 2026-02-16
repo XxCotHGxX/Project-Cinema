@@ -40,6 +40,39 @@ def get_movie_metadata(title, year=None):
     
     return None
 
+def get_tv_metadata(title):
+    """
+    Searches TMDB for TV show info.
+    """
+    if not settings.TMDB_API_KEY:
+        return None
+
+    search_url = "https://api.themoviedb.org/3/search/tv"
+    params = {
+        "api_key": settings.TMDB_API_KEY,
+        "query": title,
+        "language": "en-US"
+    }
+
+    try:
+        response = requests.get(search_url, params=params)
+        response.raise_for_status()
+        results = response.json().get('results')
+
+        if results:
+            best_match = results[0]
+            return {
+                "description": best_match.get("overview"),
+                "poster_url": f"https://image.tmdb.org/t/p/w500{best_match.get('poster_path')}",
+                "backdrop_url": f"https://image.tmdb.org/t/p/original{best_match.get('backdrop_path')}",
+                "rating": best_match.get("vote_average"),
+                "release_date": best_match.get("first_air_date")
+            }
+    except Exception as e:
+        print(f"Error fetching TV metadata for {title}: {e}")
+    
+    return None
+
 if __name__ == "__main__":
     # Test with a known movie
     test_title = "The Matrix"

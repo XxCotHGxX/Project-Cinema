@@ -11,6 +11,9 @@ interface Movie {
   backdrop_url: string;
   filename: string;
   genre: string;
+  media_type: string;
+  season?: number;
+  episode?: number;
   progress: number;
   duration: number;
 }
@@ -88,10 +91,19 @@ const App: React.FC = () => {
 
   const filteredMovies = movies.filter(m => {
     if (activeCategory === 'Home') return true;
-    if (activeCategory === 'Movies') return !m.filename.toLowerCase().includes('s0') && !m.filename.toLowerCase().includes('e0');
-    if (activeCategory === 'TV Shows') return m.filename.toLowerCase().includes('s0') || m.filename.toLowerCase().includes('e0');
-    return true;
+    if (activeCategory === 'Movies') return m.media_type === 'Movie';
+    if (activeCategory === 'TV Shows') return m.media_type === 'TV';
+    return m.genre === activeCategory;
   });
+
+  const tvShows = movies.filter(m => m.media_type === 'TV');
+  const groupedTVShows = tvShows.reduce((acc: { [key: string]: Movie[] }, movie) => {
+    if (!acc[movie.title]) {
+      acc[movie.title] = [];
+    }
+    acc[movie.title].push(movie);
+    return acc;
+  }, {});
 
   const genres = Array.from(new Set(movies.map(m => m.genre || "Uncategorized")));
 
@@ -178,6 +190,14 @@ const App: React.FC = () => {
 
       {/* Video Rows */}
       <main className={`px-12 ${activeCategory === 'Home' ? '-mt-16' : 'pt-24'} relative z-20 space-y-12 pb-20`}>
+        {activeCategory === 'Home' && (
+            <VideoRow title="Continue Watching" movies={movies.filter(m => m.progress > 0).sort((a,b) => b.id - a.id)} onPlay={(index) => {
+                const continueMovies = movies.filter(m => m.progress > 0).sort((a,b) => b.id - a.id);
+                const actualIndex = movies.findIndex(m => m.id === continueMovies[index].id);
+                handlePlay(actualIndex);
+            }} />
+        )}
+
         {activeCategory === 'Home' ? (
             genres.map(genre => (
                 <VideoRow 
@@ -191,17 +211,22 @@ const App: React.FC = () => {
                     }} 
                 />
             ))
+        ) : activeCategory === 'TV Shows' ? (
+            Object.keys(groupedTVShows).map(showTitle => (
+                <VideoRow 
+                    key={showTitle}
+                    title={showTitle} 
+                    movies={groupedTVShows[showTitle]} 
+                    onPlay={(index) => {
+                        const showEpisodes = groupedTVShows[showTitle];
+                        const actualIndex = movies.findIndex(m => m.id === showEpisodes[index].id);
+                        handlePlay(actualIndex);
+                    }} 
+                />
+            ))
         ) : (
             <VideoRow title={activeCategory} movies={filteredMovies} onPlay={(index) => {
                 const actualIndex = movies.findIndex(m => m.id === filteredMovies[index].id);
-                handlePlay(actualIndex);
-            }} />
-        )}
-        
-        {activeCategory === 'Home' && (
-            <VideoRow title="Continue Watching" movies={movies.filter(m => m.progress > 0).sort((a,b) => b.id - a.id)} onPlay={(index) => {
-                const continueMovies = movies.filter(m => m.progress > 0).sort((a,b) => b.id - a.id);
-                const actualIndex = movies.findIndex(m => m.id === continueMovies[index].id);
                 handlePlay(actualIndex);
             }} />
         )}
@@ -236,6 +261,9 @@ const VideoRow: React.FC<{ title: string, movies: Movie[], onPlay: (index: numbe
             />
             <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition">
                 <p className="text-xs font-bold">{movie.title}</p>
+                {movie.media_type === 'TV' && movie.season && movie.episode && (
+                    <p className="text-[10px] text-gray-300">S{movie.season} E{movie.episode}</p>
+                )}
                 {movie.progress > 0 && movie.duration > 0 && (
                     <div className="w-full h-1 bg-gray-600 mt-1 rounded-full overflow-hidden">
                         <div 
